@@ -47,7 +47,17 @@ class AlreadyInitialisedError (StandardError) :
 class CAPI (object) :
     def __init__ (self) :
         if sys.platform == "linux2" :
-            self.libcapi = ctypes.cdll.LoadLibrary ("libowcapi.so")
+            LIB_NAMES = ["libowcapi.so", "libowcapi-2.8.so.15"]
+            for name in LIB_NAMES:
+                try:
+                    self.libcapi = ctypes.cdll.LoadLibrary (name)
+                    break
+                except OSError:
+                    pass
+            else:
+                raise Exception("Cannot open shared object library (tried: "
+                                "%s)" % ', '.join(LIB_NAMES))
+
             self.libc    = ctypes.CDLL ("libc.so.6")
         else :
             raise NotImplementedError ("No support for %r" % sys.platform)
